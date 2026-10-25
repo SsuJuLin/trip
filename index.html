@@ -471,7 +471,12 @@ function sheetView(){
   return `<div class="sheet-bg" data-act="sBg"><div class="sheet" role="dialog" aria-label="${esc(sheet.title)}"><h2>${esc(sheet.title)}</h2>${body}</div></div>`;
 }
 function settingsBody(){
-  return `<div class="f"><label>Notion Token</label><input id="sToken" type="password" autocomplete="off" value="${esc(cfg.token)}"></div>
+  return `<h4 style="margin-top:0">換裝置快速設定</h4>
+  <div class="sbtns" style="margin:0 0 8px"><button data-act="copyCode">複製設定碼</button><button data-act="pasteCode">貼上設定碼</button></div>
+  <div class="f"><input id="codeBox" placeholder="或把設定碼貼在這裡，再按「貼上設定碼」" autocomplete="off"></div>
+  <p class="note" style="margin-top:-4px">設定碼裡有你的 Token，只傳給自己的裝置，不要傳給別人。</p>
+  <h4>手動設定</h4>
+  <div class="f"><label>Notion Token</label><input id="sToken" type="password" autocomplete="off" value="${esc(cfg.token)}"></div>
   <div class="f"><label>Proxy 網址</label><input id="sProxy" value="${esc(cfg.proxy)}"></div>
   <h4>第一次使用</h4>
   <div class="f"><label>放資料庫的 Notion 頁面網址（先把整合連到這頁）</label><input id="sPage" value="${esc(cfg.page)}" placeholder="https://www.notion.so/..."></div>
@@ -528,6 +533,28 @@ document.addEventListener('click', async e => {
     case 'addSpot': form('新增打卡點', spotForm(), {type: ui.filter !== '全部' ? ui.filter : ''}, v => { const r = Object.assign({tripId: t.id, done: false}, v); data.spots.push(r); render(); run(() => be().create('spots', r)); }); break;
     case 'addList': addList(); break;
     case 'create': readSettings(); try{ await createDatabases(); toast('資料庫建好了'); sheet = {kind:'settings', title:'連接 Notion'}; render(); }catch(err){ loading(false); toast('建立失敗：' + err.message); } break;
+    case 'copyCode': {
+      readSettings();
+      if(!connected()){ toast('這台裝置還沒連好 Notion，沒有設定碼可以複製'); break; }
+      const code = 'TRIP1:' + btoa(unescape(encodeURIComponent(JSON.stringify({token: cfg.token, proxy: cfg.proxy, page: cfg.page, db: cfg.db}))));
+      let ok = false; try{ await navigator.clipboard.writeText(code); ok = true; }catch(err){}
+      $('#codeBox').value = code;
+      if(ok) toast('已複製設定碼，傳到另一台裝置貼上就好');
+      else { $('#codeBox').select(); toast('請長按框框裡的文字手動複製'); }
+      break; }
+    case 'pasteCode': {
+      let code = $('#codeBox').value.trim();
+      if(!code){ try{ code = (await navigator.clipboard.readText()).trim(); }catch(err){} }
+      if(!code){ toast('請先把設定碼貼到框框裡'); $('#codeBox').focus(); break; }
+      try{
+        if(!code.startsWith('TRIP1:')) throw 0;
+        const c = JSON.parse(decodeURIComponent(escape(atob(code.slice(6).replace(/\s/g, '')))));
+        if(!c.token || !c.db || !c.db.trips) throw 0;
+        cfg.token = c.token; cfg.proxy = c.proxy || cfg.proxy; cfg.page = c.page || ''; cfg.db = Object.assign({trips:'', items:'', spots:'', list:''}, c.db); saveCfg();
+      }catch(err){ toast('設定碼不正確，請重新複製'); break; }
+      closeSheet(); toast('設定完成，正在連接 Notion');
+      cache = ls(cacheKey(), {trips: [], data: {}}); trips = cache.trips || []; ui.view = 'home'; saveUI(); loadTrips();
+      break; }
     case 'saveCfg': readSettings(); closeSheet(); if(!connected()){ toast('Token 和 4 個資料庫 ID 都要填'); return; } cache = ls(cacheKey(), {trips: [], data: {}}); trips = cache.trips || []; ui.view = 'home'; saveUI(); loadTrips(); break;
   }
 });
