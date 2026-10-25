@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFCF6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>我的旅程</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Huninn&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFFCF6; --ink:#3E3A39; --muted:#8C8681; --faint:#DDD7CE;
+  --coral:#F2A497; --yellow:#F6D27A; --mizu:#A8D3E6; --green:#B9DAA5;
+  --coral-s:#FBE3DE; --yellow-s:#FDF1D2; --mizu-s:#E3F1F7; --green-s:#E8F3E0;
+  --line:3px solid var(--ink); --r:22px; color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--mizu);outline-offset:2px;border-radius:10px}
+
+header{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--paper);border-bottom:var(--line);padding-top:env(safe-area-inset-top,0px)}
+.hrow{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:8px 14px}
+.hrow .t{flex:1;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrow.center .t{text-align:center}
+.ib{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:50%;font-size:26px;line-height:1}
+.logo{width:42px;height:42px;flex:none}
+.tabs{max-width:560px;margin:0 auto;display:flex;gap:8px;justify-content:center;padding:0 14px 10px}
+.tabs button{flex:1;max-width:120px;padding:4px 0;border-radius:999px;border:3px solid transparent;font-size:17px}
+.tabs button.on{background:var(--coral);border-color:var(--ink)}
+main{max-width:560px;margin:0 auto;padding:calc(76px + env(safe-area-inset-top,0px)) 18px calc(60px + env(safe-area-inset-bottom,0px))}
+body.in-trip main{padding-top:calc(124px + env(safe-area-inset-top,0px))}
+
+.hero-art{width:100%;display:block;border:var(--line);border-radius:var(--r);background:#fff;overflow:hidden;margin:8px 0 22px}
+.sh{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.sh h2{margin:0;font-size:24px;font-weight:400}
+.sh .n{color:var(--muted);margin-left:auto}
+.banner{font-size:13px;color:var(--muted);text-align:center;margin:-8px 0 18px}
+.banner button{text-decoration:underline;color:var(--ink)}
+
+/* trip list */
+.trip{display:flex;gap:14px;align-items:center;width:100%;text-align:left;border:var(--line);border-radius:26px;background:#fff;padding:12px;margin-bottom:14px}
+.trip svg{width:88px;height:64px;flex:none;border:var(--line);border-radius:14px;background:var(--paper)}
+.trip b{display:block;font-weight:400;font-size:19px;line-height:1.35}
+.trip .d{color:var(--muted);font-size:14px}
+.badge{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 10px;font-size:13px;margin-top:4px;background:var(--yellow)}
+.badge.go{background:var(--green)} .badge.end{background:var(--mizu-s)}
+.add{display:block;width:100%;padding:14px;border:3px dashed var(--faint);border-radius:22px;color:var(--muted);font-size:16px;margin:6px 0 10px}
+.add:hover{border-color:var(--ink);color:var(--ink)}
+.empty{color:var(--muted);text-align:center;padding:26px 0}
+
+/* trip head card */
+.thead{display:flex;align-items:center;gap:14px;border:var(--line);border-radius:26px;padding:12px;margin-bottom:22px;background:var(--yellow-s)}
+.thead svg{width:96px;height:70px;flex:none;border:var(--line);border-radius:14px;background:#fff}
+.thead .d{color:var(--muted);font-size:14px}
+
+/* ropeway */
+.ropeway{overflow-x:auto;scrollbar-width:none;margin:0 -18px 18px;padding:0 18px}
+.ropeway::-webkit-scrollbar{display:none}
+.rw{position:relative;display:flex;min-width:100%}
+.rw .cable{position:absolute;top:15px;height:3px;background:var(--ink)}
+.stop{flex:1;min-width:66px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1}
+.stop .dot{width:24px;height:24px;border-radius:50%;border:var(--line);background:#fff;margin-top:4px}
+.stop .d{margin-top:50px;font-size:19px;padding:0 10px;border-radius:999px;line-height:1.5}
+.stop .w{font-size:13px;color:var(--muted)}
+.stop.on .d{background:var(--coral)}
+.gondola{position:absolute;top:12px;width:46px;height:54px;margin-left:-23px;z-index:2;pointer-events:none;transition:left .5s cubic-bezier(.34,1.56,.64,1)}
+.gondola.hop{animation:hop .55s ease}
+@keyframes hop{0%{transform:none}35%{transform:translateY(-10px)}65%{transform:translateY(3px)}100%{transform:none}}
+.daycard{display:flex;gap:14px;align-items:center;border:var(--line);border-radius:26px;padding:12px 14px;margin-bottom:20px}
+.daycard svg{width:92px;height:64px;flex:none;border:var(--line);border-radius:14px;background:#fff}
+.daycard .k{color:var(--muted);font-size:14px}
+.daycard h3{margin:0;font-weight:400;font-size:21px}
+.pop{animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{opacity:.3;transform:translateY(10px) scale(.96)}100%{opacity:1;transform:none}}
+
+/* timeline */
+.ti{display:grid;grid-template-columns:50px 22px 1fr;gap:0 10px;position:relative;padding-bottom:16px}
+.ti::before{content:"";position:absolute;left:69px;top:8px;bottom:-8px;border-left:3px dotted var(--ink)}
+.ti:last-child::before{display:none}
+.ti .tm{text-align:right;padding-top:8px;font-variant-numeric:tabular-nums}
+.ti .o{width:22px;height:22px;border-radius:50%;border:var(--line);background:var(--paper);margin-top:10px;position:relative;z-index:1}
+.ti.done .o{background:var(--green)}
+.card{border:var(--line);border-radius:20px;background:#fff;overflow:hidden}
+.card>button{display:block;width:100%;text-align:left;padding:10px 14px}
+.card .nm{font-size:18px;background:linear-gradient(transparent 80%,var(--hl,var(--mizu)) 80%)}
+.ti.done .nm{color:var(--muted);text-decoration:line-through}
+.card .meta{color:var(--muted);font-size:14px;margin-top:2px}
+.must{display:inline-block;margin-left:8px;background:var(--coral);border:2px solid var(--ink);border-radius:999px;padding:0 9px;font-size:12px;vertical-align:3px}
+.detail{border-top:2px dashed var(--faint);padding:10px 14px 12px;font-size:15px}
+.detail p{margin:0 0 6px;white-space:pre-line}
+.detail .lb{display:inline-block;min-width:4.5em;color:var(--muted)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:2px solid var(--ink);border-radius:999px;padding:2px 14px;font-size:14px;background:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.chip.y{background:var(--yellow)} .chip.g{background:var(--green-s)}
+.chip input{width:16px;height:16px;margin:0;accent-color:var(--ink)}
+
+/* spots + list */
+.bar{height:14px;border:2px solid var(--ink);border-radius:999px;overflow:hidden;margin:0 0 16px;background:#fff}
+.bar i{display:block;height:100%;background:var(--green);transition:width .4s}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters button{border:2px solid var(--ink);border-radius:999px;padding:1px 14px;font-size:14px;background:#fff}
+.filters button.on{background:var(--mizu)}
+.row{border-bottom:2px dashed var(--faint)}
+.rm{display:flex;align-items:center;gap:12px;padding:12px 2px}
+.rm .nm{flex:1;text-align:left;font-size:17px}
+.row.done .nm{color:var(--muted);text-decoration:line-through}
+.sts{font-size:13px;white-space:nowrap;color:var(--muted)}
+.sts.live{border:2px solid var(--ink);border-radius:999px;padding:0 10px;background:var(--green);color:var(--ink)}
+.row .detail{border:0;padding:0 0 12px 40px}
+.cb{appearance:none;width:26px;height:26px;border:var(--line);border-radius:9px;margin:0;flex:none;display:grid;place-items:center;background:#fff;cursor:pointer}
+.cb:checked{background:var(--green)}
+.cb:checked::after{content:"";width:8px;height:14px;border:solid var(--ink);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-2px)}
+.grp{color:var(--muted);font-size:14px;margin:16px 0 0}
+.li{display:flex;align-items:center;gap:12px;padding:10px 2px;border-bottom:2px dashed var(--faint);cursor:pointer}
+.li span{flex:1}
+.li.done span{color:var(--muted);text-decoration:line-through}
+.x{color:var(--muted);font-size:22px;padding:0 6px}
+.addrow{display:flex;gap:8px;margin-top:16px}
+.addrow input{flex:1;min-width:0;border:2px solid var(--ink);border-radius:14px;padding:8px 12px;background:#fff}
+.addrow input.g{flex:0 0 30%}
+.btn{border:var(--line);border-radius:999px;background:var(--yellow);padding:6px 18px;white-space:nowrap}
+
+/* sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(62,58,57,.35);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--paper);border:var(--line);border-bottom:0;border-radius:26px 26px 0 0;width:100%;max-width:560px;max-height:90vh;overflow:auto;padding:20px 20px calc(22px + env(safe-area-inset-bottom,0px))}
+.sheet h2{font-weight:400;font-size:22px;margin:0 0 14px;text-align:center}
+.sheet h4{font-weight:400;color:var(--muted);margin:18px 0 8px}
+.f{margin-bottom:12px}
+.f label{display:block;font-size:13px;color:var(--muted);margin-bottom:2px}
+.f input:not([type=checkbox]),.f select,.f textarea{width:100%;border:2px solid var(--ink);border-radius:12px;padding:8px 12px;background:#fff}
+.f textarea{min-height:60px;resize:vertical}
+.f.ck label{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:16px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.more summary{color:var(--muted);cursor:pointer;margin:2px 0 12px}
+.sbtns{display:flex;gap:8px;margin-top:14px}
+.sbtns button{flex:1;padding:10px;border:var(--line);border-radius:999px;background:#fff}
+.sbtns .pri{background:var(--yellow)}
+.sbtns .del{flex:0 0 auto;padding:10px 16px;border-color:transparent;color:#c0392b;background:none}
+.menu button{display:block;width:100%;text-align:left;padding:14px 4px;border-bottom:2px dashed var(--faint);font-size:17px}
+.menu button.red{color:#c0392b;border:0}
+.note{font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);border-radius:999px;padding:8px 18px;z-index:60;font-size:14px;max-width:90vw;text-align:center}
+.loading{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:1px 14px;font-size:13px;z-index:30}
+body.in-trip .loading{top:calc(118px + env(safe-area-inset-top,0px))}
+
+/* illustration motion */
+.swing{transform-box:fill-box;transform-origin:50% 0;animation:swing 3.6s ease-in-out infinite}
+.sway{transform-box:fill-box;transform-origin:50% 100%;animation:swing 4s ease-in-out infinite}
+.drift{animation:drift 9s ease-in-out infinite alternate}
+.drift2{animation:drift 12s ease-in-out infinite alternate-reverse}
+.wave{animation:wave 4s ease-in-out infinite alternate}
+.bob{animation:bob 2.8s ease-in-out infinite}
+.blink{animation:blink 2.4s steps(1) infinite}
+@keyframes swing{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes drift{from{transform:translateX(-8px)}to{transform:translateX(14px)}}
+@keyframes wave{from{transform:translateX(-14px)}to{transform:none}}
+@keyframes bob{0%,100%{transform:none}50%{transform:translateY(-4px)}}
+@keyframes blink{0%,70%{opacity:1}71%,100%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header id="hdr"></header>
+<main id="main"></main>
+<div id="layer"></div>
+<script>
+(function(){
+/* ============ storage & config ============ */
+const ls = (k, d) => { try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } };
+const lsSet = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+const cfg = Object.assign({token:'', proxy:'https://notion-proxy.doristtn.workers.dev/?url=', page:'', db:{}}, ls('tp2:cfg', {}));
+cfg.db = Object.assign({trips:'', items:'', spots:'', list:''}, cfg.db);
+const saveCfg = () => lsSet('tp2:cfg', cfg);
+const connected = () => !!(cfg.token && cfg.db.trips && cfg.db.items && cfg.db.spots && cfg.db.list);
+
+/* ============ helpers ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => 'L' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+const today = () => ymd(new Date());
+const pd = s => { const [y,m,d] = String(s).slice(0,10).split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (s, n) => { const d = pd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const diff = (a, b) => Math.round((pd(b) - pd(a)) / 86400000);
+const WK = ['週日','週一','週二','週三','週四','週五','週六'];
+const md = s => { const d = pd(s); return (d.getMonth()+1) + '/' + d.getDate(); };
+const dotted = s => s ? s.slice(0,10).replace(/-/g, '.') : '';
+const mapUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+function dur(a, b){ if(!a || !b) return ''; const m = (+b.slice(0,2)*60 + +b.slice(3,5)) - (+a.slice(0,2)*60 + +a.slice(3,5)); if(m <= 0) return ''; const h = Math.floor(m / 60), r = m % 60; return (h ? h + ' 小時' : '') + (r ? (h ? ' ' : '') + r + ' 分' : ''); }
+let tT;
+function toast(m){ let el = $('.toast'); if(!el){ el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent = m; clearTimeout(tT); tT = setTimeout(() => el.remove(), 2600); }
+function loading(on, msg){ let el = $('.loading'); if(on){ if(!el){ el = document.createElement('div'); el.className = 'loading'; document.body.appendChild(el); } el.textContent = msg || '讀取中…'; } else if(el) el.remove(); }
+
+/* ============ field map (same for local & Notion) ============ */
+const FIELDS = {
+  trips: {title:['名稱','title'], start:['出發日','date'], days:['天數','number'], theme:['插圖','select']},
+  items: {name:['名稱','title'], day:['Day','number'], start:['開始','text'], end:['結束','text'], cat:['類型','select'], must:['必去','checkbox'], hours:['營業時間','text'], transit:['交通','text'], address:['地址','text'], note:['備註','text']},
+  spots: {name:['名稱','title'], type:['分類','select'], start:['開始日','date'], end:['結束日','date'], done:['已打卡','checkbox'], address:['地址','text'], note:['備註','text']},
+  list:  {text:['項目','title'], group:['分類','select'], done:['完成','checkbox']}
+};
+const DB_TITLE = {trips:'✈️ 旅程', items:'🗓️ 行程', spots:'📍 打卡', list:'🧳 清單'};
+
+/* ============ Notion ============ */
+async function notion(path, method, body){
+  const r = await fetch(cfg.proxy + encodeURIComponent('https://api.notion.com/v1/' + path), {method: method || 'GET', headers: {'Authorization':'Bearer ' + cfg.token, 'Notion-Version':'2022-06-28', 'Content-Type':'application/json'}, body: body ? JSON.stringify(body) : undefined});
+  let j = {}; try{ j = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(j.message || ('HTTP ' + r.status));
+  return j;
+}
+async function queryAll(db, body){
+  let out = [], cur = null;
+  do{ const j = await notion('databases/' + db + '/query', 'POST', Object.assign({page_size: 100}, body || {}, cur ? {start_cursor: cur} : {})); out = out.concat(j.results); cur = j.has_more ? j.next_cursor : null; }while(cur);
+  return out;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function fromPage(col, p){
+  const o = {id: p.id}, pr = p.properties;
+  for(const [k, [name, kind]] of Object.entries(FIELDS[col])){
+    const x = pr[name];
+    if(!x){ o[k] = kind === 'checkbox' ? false : ''; continue; }
+    if(kind === 'title') o[k] = x.title.map(t => t.plain_text).join('');
+    else if(kind === 'text') o[k] = x.rich_text.map(t => t.plain_text).join('');
+    else if(kind === 'select') o[k] = x.select ? x.select.name : '';
+    else if(kind === 'date') o[k] = x.date ? x.date.start.slice(0,10) : '';
+    else if(kind === 'number') o[k] = x.number == null ? '' : x.number;
+    else if(kind === 'checkbox') o[k] = !!x.checkbox;
+  }
+  if(pr['旅程'] && pr['旅程'].relation && pr['旅程'].relation[0]) o.tripId = pr['旅程'].relation[0].id;
+  return o;
+}
+function toProps(col, rec){
+  const out = {};
+  for(const [k, [name, kind]] of Object.entries(FIELDS[col])){
+    const v = rec[k];
+    if(kind === 'title') out[name] = {title: [{text: {content: String(v || '')}}]};
+    else if(kind === 'text') out[name] = {rich_text: v ? [{text: {content: String(v)}}] : []};
+    else if(kind === 'select') out[name] = {select: v ? {name: String(v).replace(/,/g, '，')} : null};
+    else if(kind === 'date') out[name] = {date: v ? {start: v} : null};
+    else if(kind === 'number') out[name] = {number: v === '' || v == null ? null : Number(v)};
+    else if(kind === 'checkbox') out[name] = {checkbox: !!v};
+  }
+  return out;
+}
+async function createDatabases(){
+  const pid = (cfg.page.replace(/-/g, '').match(/[0-9a-f]{32}/i) || [])[0];
+  if(!cfg.token) throw new Error('請先填 Notion Token');
+  if(!pid) throw new Error('請貼上放資料庫的 Notion 頁面網址');
+  loading(true, '建立資料庫中…');
+  const parent = {type:'page_id', page_id: pid};
+  const schemaOf = (col, rel) => { const s = {}; for(const [name, kind] of Object.values(FIELDS[col])) s[name] = ({title:{title:{}}, text:{rich_text:{}}, select:{select:{options:[]}}, date:{date:{}}, number:{number:{}}, checkbox:{checkbox:{}}})[kind]; if(rel) s['旅程'] = {relation: {database_id: rel, type:'single_property', single_property:{}}}; return s; };
+  const mk = async (col, rel) => (await notion('databases', 'POST', {parent, title: [{text: {content: DB_TITLE[col]}}], properties: schemaOf(col, rel)})).id;
+  const trips = await mk('trips');
+  const ids = {trips};
+  for(const c of ['items','spots','list']){ await sleep(350); ids[c] = await mk(c, trips); }
+  cfg.db = ids; saveCfg(); loading(false);
+}
+
+/* ============ backends ============ */
+const local = {
+  db: Object.assign({trips:[], items:[], spots:[], list:[]}, ls('tp2:local', {})),
+  save(){ lsSet('tp2:local', this.db); },
+  async listTrips(){ return JSON.parse(JSON.stringify(this.db.trips)); },
+  async loadTrip(id){ const g = c => JSON.parse(JSON.stringify(this.db[c].filter(x => x.tripId === id))); return {items: g('items'), spots: g('spots'), list: g('list')}; },
+  async create(col, rec){ rec.id = uid(); this.db[col].push(Object.assign({}, rec)); this.save(); return rec; },
+  async update(col, rec){ const i = this.db[col].findIndex(x => x.id === rec.id); if(i >= 0) this.db[col][i] = Object.assign({}, rec); this.save(); },
+  async remove(col, id){ this.db[col] = this.db[col].filter(x => x.id !== id); if(col === 'trips') ['items','spots','list'].forEach(c => { this.db[c] = this.db[c].filter(x => x.tripId !== id); }); this.save(); }
+};
+const remote = {
+  async listTrips(){ return (await queryAll(cfg.db.trips, {sorts: [{property:'出發日', direction:'ascending'}]})).map(p => fromPage('trips', p)); },
+  async loadTrip(id){ const f = {filter: {property:'旅程', relation: {contains: id}}}; const [a, b, c] = await Promise.all(['items','spots','list'].map(k => queryAll(cfg.db[k], f))); return {items: a.map(p => fromPage('items', p)), spots: b.map(p => fromPage('spots', p)), list: c.map(p => fromPage('list', p))}; },
+  async create(col, rec){ const props = toProps(col, rec); if(col !== 'trips') props['旅程'] = {relation: [{id: rec.tripId}]}; const p = await notion('pages', 'POST', {parent: {database_id: cfg.db[col]}, properties: props}); rec.id = p.id; return rec; },
+  async update(col, rec){ await notion('pages/' + rec.id, 'PATCH', {properties: toProps(col, rec)}); },
+  async remove(col, id){
+    if(col === 'trips'){ const d = await this.loadTrip(id); for(const c of ['items','spots','list']) for(const x of d[c]){ await notion('pages/' + x.id, 'PATCH', {archived: true}); await sleep(300); } }
+    await notion('pages/' + id, 'PATCH', {archived: true});
+  }
+};
+const be = () => connected() ? remote : local;
+const cacheKey = () => 'tp2:cache:' + (connected() ? 'n' : 'l');
+
+/* ============ state ============ */
+let ui = Object.assign({view:'home', tripId:null, tab:'plan', day:1, filter:'全部'}, ls('tp2:ui', {}));
+const saveUI = () => lsSet('tp2:ui', ui);
+let cache = ls(cacheKey(), {trips: [], data: {}});
+let trips = cache.trips || [];
+let data = {items: [], spots: [], list: []};
+let open = {}, sheet = null, hop = false;
+const trip = () => trips.find(t => t.id === ui.tripId);
+const saveCache = () => { cache.trips = trips; if(ui.tripId) cache.data[ui.tripId] = data; lsSet(cacheKey(), cache); };
+
+async function loadTrips(){
+  if(connected()) loading(true);
+  try{ trips = await be().listTrips(); saveCache(); }catch(e){ toast('讀取 Notion 失敗：' + e.message); }
+  loading(false); render();
+}
+async function openTrip(id, keepUI){
+  ui.tripId = id; ui.view = 'trip'; if(!keepUI){ ui.tab = 'plan'; ui.filter = '全部'; const t = trip(); ui.day = t ? todayDay(t) : 1; } open = {}; saveUI();
+  data = (cache.data && cache.data[id]) || {items: [], spots: [], list: []};
+  render(); window.scrollTo(0, 0);
+  if(connected()) loading(true);
+  try{ data = await be().loadTrip(id); saveCache(); }catch(e){ toast('讀取失敗：' + e.message); }
+  loading(false); render();
+}
+function todayDay(t){ if(!t.start) return 1; const n = diff(t.start, today()) + 1; return n >= 1 && n <= (t.days || 1) ? n : 1; }
+async function run(fn, okMsg){ try{ await fn(); saveCache(); render(); if(okMsg) toast(okMsg); }catch(e){ toast('同步失敗：' + e.message); if(ui.view === 'trip') openTrip(ui.tripId, true); else loadTrips(); } }
+
+/* ============ illustrations ============ */
+const st = 'stroke="#3E3A39" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
+const K = '#3E3A39';
+const cloud = (x, y, s, c) => `<g class="${c}"><path transform="translate(${x} ${y}) scale(${s})" d="M0 20 Q0 8 12 9 Q15 -2 28 2 Q38 -4 44 8 Q56 8 55 20 Z" fill="#fff" ${st}/></g>`;
+const gond = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="swing"><line x1="20" y1="0" x2="20" y2="10" ${st}/><rect x="4" y="10" width="32" height="30" rx="10" fill="#F2A497" ${st}/><rect x="9" y="16" width="10" height="8" rx="4" fill="#F6D27A" ${st}/><rect x="21" y="16" width="10" height="8" rx="4" fill="#F6D27A" ${st}/></g></g>`;
+function homeArt(){
+  return `<svg class="hero-art" viewBox="0 0 360 200" role="img" aria-label="行李箱和飛機的插圖"><rect width="360" height="200" fill="#FFFCF6"/>
+  <circle cx="300" cy="44" r="20" fill="#F6D27A" ${st}/>${cloud(24, 30, 1, 'drift')}${cloud(196, 22, .8, 'drift2')}
+  <g class="bob"><path d="M236 92 L300 70 L294 80 L276 88 L284 104 L278 104 L266 92 L252 96 Z" fill="#fff" ${st}/></g>
+  <path d="M-10 172 Q90 150 180 168 Q270 150 370 170 V210 H-10 Z" fill="#B9DAA5" ${st}/>
+  <rect x="96" y="70" width="96" height="98" rx="16" fill="#F2A497" ${st}/><path d="M126 70 V56 Q126 48 134 48 H154 Q162 48 162 56 V70" fill="none" ${st}/>
+  <line x1="120" y1="80" x2="120" y2="158" ${st}/><line x1="168" y1="80" x2="168" y2="158" ${st}/>
+  <circle cx="144" cy="104" r="12" fill="#F6D27A" ${st}/><rect x="132" y="128" width="26" height="16" rx="5" fill="#A8D3E6" ${st}/>
+  <rect x="200" y="112" width="54" height="56" rx="12" fill="#A8D3E6" ${st}/><line x1="227" y1="112" x2="227" y2="98" ${st}/><line x1="216" y1="98" x2="238" y2="98" ${st}/>
+  </svg>`;
+}
+function miniArt(theme){
+  const sea = `<g class="wave"><path d="M-10 58 Q5 52 20 58 T50 58 T80 58 T110 58 T140 58 V90 H-10 Z" fill="#A8D3E6" ${st}/></g>`;
+  if(theme === '城市') return `<svg viewBox="0 0 120 84" aria-hidden="true"><rect x="12" y="36" width="22" height="40" rx="4" fill="#F2A497" ${st}/><line x1="60" y1="8" x2="60" y2="18" ${st}/><circle cx="60" cy="24" r="7" fill="#F6D27A" ${st}/><path d="M55 31 L52 76 H68 L65 31 Z" fill="#fff" ${st}/><rect x="80" y="44" width="26" height="32" rx="4" fill="#A8D3E6" ${st}/><line x1="0" y1="76" x2="120" y2="76" ${st}/></svg>`;
+  if(theme === '山景') return `<svg viewBox="0 0 120 84" aria-hidden="true"><circle cx="96" cy="20" r="9" fill="#F6D27A" ${st}/><path d="M8 72 L50 22 L92 72 Z" fill="#A8D3E6" ${st}/><path d="M40 34 L50 22 L60 34 Q55 31 50 36 Q45 31 40 34 Z" fill="#fff" ${st}/><path d="M-4 76 Q40 58 80 72 Q100 64 124 70 V90 H-4 Z" fill="#B9DAA5" ${st}/></svg>`;
+  if(theme === '島嶼') return `<svg viewBox="0 0 120 84" aria-hidden="true"><circle cx="96" cy="20" r="9" fill="#F6D27A" ${st}/><path d="M24 58 Q56 32 90 58 Z" fill="#F6D27A" ${st}/><g class="sway"><path d="M56 46 Q54 34 58 24" fill="none" ${st}/><path d="M58 24 Q46 20 40 28 Q50 25 58 24 Q70 22 74 30 Q66 24 58 24 Z" fill="#B9DAA5" ${st}/></g>${sea}</svg>`;
+  return `<svg viewBox="0 0 120 84" aria-hidden="true"><line x1="0" y1="12" x2="120" y2="30" ${st}/>${gond(42, 16, .7)}${sea}</svg>`;
+}
+const DAYMINI = ['海港','山景','城市','島嶼'];
+const DAYBG = ['var(--coral-s)','var(--yellow-s)','var(--mizu-s)','var(--green-s)'];
+const HL = {'景點':'var(--mizu)','美食':'var(--coral)','購物':'var(--green)','住宿':'var(--yellow)','交通':'var(--yellow)'};
+const CATS = ['景點','美食','購物','住宿','交通','其他'];
+const THEMES = ['海港','城市','山景','島嶼'];
+
+/* ============ render ============ */
+function tripStatus(t){
+  if(!t.start) return ['', ''];
+  const left = diff(today(), t.start), end = addDays(t.start, (t.days || 1) - 1);
+  if(left > 0) return ['還有 ' + left + ' 天', ''];
+  if(today() <= end) return ['旅行中 Day ' + (1 - left), 'go'];
+  return ['已結束', 'end'];
+}
+const tripRange = t => t.start ? dotted(t.start) + ' – ' + addDays(t.start, (t.days || 1) - 1).slice(5).replace('-', '.') + '・' + (t.days || 1) + ' 天' : (t.days || 1) + ' 天';
+const logo = `<svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><line x1="24" y1="2" x2="24" y2="10" ${st}/><rect x="7" y="10" width="34" height="32" rx="11" fill="#F2A497" ${st}/><rect x="13" y="17" width="10" height="8" rx="4" fill="#F6D27A" ${st}/><rect x="25" y="17" width="10" height="8" rx="4" fill="#F6D27A" ${st}/></svg>`;
+
+function render(){
+  const t = trip();
+  if(ui.view === 'trip' && !t){ ui.view = 'home'; }
+  document.body.classList.toggle('in-trip', ui.view === 'trip');
+  if(ui.view === 'home'){
+    $('#hdr').innerHTML = `<div class="hrow">${logo}<span class="t">我的旅程</span><button class="ib" data-act="settings" aria-label="設定">⚙︎</button></div>`;
+    $('#main').innerHTML = homeView();
+    document.title = '我的旅程';
+  } else {
+    $('#hdr').innerHTML = `<div class="hrow center"><button class="ib" data-act="home" aria-label="回到我的旅程">‹</button><span class="t">${esc(t.title)}</span><button class="ib" data-act="menu" aria-label="更多">⋯</button></div>
+      <nav class="tabs">${[['plan','行程'],['spots','打卡'],['list','清單']].map(([k, l]) => `<button class="${ui.tab === k ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</nav>`;
+    const y = window.scrollY;
+    $('#main').innerHTML = ui.tab === 'plan' ? planView(t) : ui.tab === 'spots' ? spotsView() : listView();
+    window.scrollTo(0, y);
+    document.title = t.title;
+  }
+  $('#layer').innerHTML = sheet ? sheetView() : '';
+  hop = false;
+}
+function homeView(){
+  let h = homeArt();
+  if(!connected()) h += `<p class="banner">資料目前存在這台裝置。<button data-act="settings">連接 Notion</button> 就能在各裝置同步。</p>`;
+  const list = trips.slice().sort((a, b) => (a.start || '9').localeCompare(b.start || '9'));
+  if(!list.length) h += `<div class="empty">還沒有旅程，開始規劃第一趟吧！</div>`;
+  list.forEach(t => { const [s, c] = tripStatus(t); h += `<button class="trip" data-open="${esc(t.id)}">${miniArt(t.theme)}<div><b>${esc(t.title)}</b><div class="d">${tripRange(t)}</div>${s ? `<span class="badge ${c}">${s}</span>` : ''}</div></button>`; });
+  return h + `<button class="add" data-act="newTrip">＋ 新增旅程</button>`;
+}
+function planView(t){
+  const n = Math.max(1, t.days || 1); if(ui.day > n) ui.day = 1;
+  const dateOf = i => t.start ? addDays(t.start, i - 1) : '';
+  const [s, c] = tripStatus(t);
+  let h = `<div class="thead">${miniArt(t.theme)}<div><div class="d">${tripRange(t)}</div>${s ? `<span class="badge ${c}">${s}</span>` : ''}</div></div>`;
+  h += `<div class="ropeway"><div class="rw" style="min-width:${n * 66}px"><div class="cable" style="left:${50 / n}%;right:${50 / n}%"></div>`;
+  for(let i = 1; i <= n; i++){ const d = dateOf(i); h += `<button class="stop${i === ui.day ? ' on' : ''}" data-day="${i}" aria-pressed="${i === ui.day}"><span class="dot"></span><span class="d">${d ? md(d) : 'Day ' + i}</span><span class="w">${d ? WK[pd(d).getDay()] : '&nbsp;'}</span></button>`; }
+  h += `<svg class="gondola${hop ? ' hop' : ''}" style="left:${(ui.day - .5) / n * 100}%" viewBox="0 0 46 54" aria-hidden="true"><g class="swing"><line x1="23" y1="0" x2="23" y2="15" ${st}/><rect x="5" y="15" width="36" height="34" rx="11" fill="#F2A497" ${st}/><rect x="11" y="22" width="11" height="9" rx="4" fill="#F6D27A" ${st}/><rect x="24" y="22" width="11" height="9" rx="4" fill="#F6D27A" ${st}/></g></svg></div></div>`;
+  const d = dateOf(ui.day);
+  h += `<div class="daycard${hop ? ' pop' : ''}" style="background:${DAYBG[(ui.day - 1) % 4]}">${miniArt(DAYMINI[(ui.day - 1) % 4])}<div><div class="k">Day ${ui.day}</div><h3>${d ? md(d) + '（' + WK[pd(d).getDay()] + '）' : '第 ' + ui.day + ' 天'}</h3></div></div>`;
+  const items = data.items.filter(x => +x.day === ui.day).sort((a, b) => (a.start || '99').localeCompare(b.start || '99'));
+  h += `<div class="${hop ? 'pop' : ''}">`;
+  if(!items.length) h += `<div class="empty">這天還沒有安排</div>`;
+  items.forEach(x => {
+    const o = open[x.id], du = dur(x.start, x.end);
+    const meta = [du ? '停留 ' + du : '', x.cat && x.cat !== '其他' ? x.cat : ''].filter(Boolean).join('　');
+    h += `<div class="ti"><span class="tm">${esc(x.start)}</span><span class="o"></span><div class="card" style="--hl:${HL[x.cat] || 'var(--mizu)'}"><button data-toggle="${esc(x.id)}" aria-expanded="${!!o}"><span class="nm">${esc(x.name)}</span>${x.must ? '<span class="must">必去</span>' : ''}${meta ? `<div class="meta">${meta}</div>` : ''}</button>`;
+    if(o){
+      h += `<div class="detail">`;
+      if(x.start || x.end) h += `<p><span class="lb">時間</span>${esc(x.start)}${x.end ? ' – ' + esc(x.end) : ''}</p>`;
+      if(x.hours) h += `<p><span class="lb">營業時間</span>${esc(x.hours)}</p>`;
+      if(x.transit) h += `<p><span class="lb">交通</span>${esc(x.transit)}</p>`;
+      if(x.note) h += `<p><span class="lb">備註</span>${esc(x.note)}</p>`;
+      if(!x.hours && !x.transit && !x.note) h += `<p class="note">還沒有填營業時間、交通或備註</p>`;
+      h += `<div class="acts"><a class="chip" href="${mapUrl(x.address || x.name)}" target="_blank" rel="noopener">📍 地圖</a><button class="chip y" data-edit-item="${esc(x.id)}">✎ 編輯</button></div></div>`;
+    }
+    h += `</div></div>`;
+  });
+  return h + `</div><button class="add" data-act="addItem">＋ 新增 Day ${ui.day} 行程</button>`;
+}
+function spotStatus(s){ const t = today(); if(s.start && t < s.start) return [md(s.start) + ' 開始', '']; if(s.end && t > s.end) return ['已結束', '']; if(s.start || s.end) return ['進行中', 'live']; return ['', '']; }
+function spotsView(){
+  const sp = data.spots, n = sp.filter(s => s.done).length;
+  const types = [...new Set(sp.map(s => s.type).filter(Boolean))];
+  if(ui.filter !== '全部' && !types.includes(ui.filter)) ui.filter = '全部';
+  let h = `<div class="sh"><h2>打卡點</h2><span class="n">${n} / ${sp.length}</span></div><div class="bar"><i style="width:${sp.length ? n / sp.length * 100 : 0}%"></i></div>`;
+  if(types.length) h += `<div class="filters">${['全部'].concat(types).map(x => `<button class="${ui.filter === x ? 'on' : ''}" data-filter="${esc(x)}">${esc(x)}</button>`).join('')}</div>`;
+  const list = sp.filter(s => ui.filter === '全部' || s.type === ui.filter).sort((a, b) => (a.start || '9').localeCompare(b.start || '9'));
+  if(!list.length) h += `<div class="empty">還沒有打卡點</div>`;
+  list.forEach(s => {
+    const [txt, cls] = spotStatus(s);
+    h += `<div class="row${s.done ? ' done' : ''}"><div class="rm"><input type="checkbox" class="cb" data-ck-spot="${esc(s.id)}" aria-label="打卡 ${esc(s.name)}"${s.done ? ' checked' : ''}><button class="nm" data-toggle="${esc(s.id)}">${esc(s.name)}</button>${txt ? `<span class="sts ${cls}">${txt}</span>` : ''}</div>`;
+    if(open[s.id]){
+      h += `<div class="detail">`;
+      if(s.type) h += `<p><span class="lb">分類</span>${esc(s.type)}</p>`;
+      if(s.start || s.end) h += `<p><span class="lb">期間</span>${s.start ? md(s.start) : '?'} – ${s.end ? md(s.end) : '?'}</p>`;
+      if(s.note) h += `<p><span class="lb">備註</span>${esc(s.note)}</p>`;
+      h += `<div class="acts"><a class="chip" href="${mapUrl(s.address || s.name)}" target="_blank" rel="noopener">📍 地圖</a><button class="chip y" data-edit-spot="${esc(s.id)}">✎ 編輯</button></div></div>`;
+    }
+    h += `</div>`;
+  });
+  return h + `<button class="add" data-act="addSpot">＋ 新增打卡點</button>`;
+}
+function listView(){
+  const L = data.list, n = L.filter(i => i.done).length;
+  let h = `<div class="sh"><h2>行前清單</h2><span class="n">${n} / ${L.length}</span></div><div class="bar"><i style="width:${L.length ? n / L.length * 100 : 0}%"></i></div>`;
+  const groups = [...new Set(L.map(i => i.group || '其他'))];
+  if(!L.length) h += `<div class="empty">清單是空的</div>`;
+  groups.forEach(g => {
+    h += `<div class="grp">${esc(g)}</div>`;
+    L.filter(i => (i.group || '其他') === g).forEach(i => { h += `<label class="li${i.done ? ' done' : ''}"><input type="checkbox" class="cb" data-ck-list="${esc(i.id)}"${i.done ? ' checked' : ''}><span>${esc(i.text)}</span><button class="x" data-del-list="${esc(i.id)}" aria-label="刪除 ${esc(i.text)}">×</button></label>`; });
+  });
+  return h + `<div class="addrow"><input class="g" id="ng" placeholder="分類" list="grps"><datalist id="grps">${groups.map(g => `<option value="${esc(g)}">`).join('')}</datalist><input id="ni" placeholder="要帶的東西" enterkeyhint="done"><button class="btn" data-act="addList">加入</button></div>`;
+}
+
+/* ============ sheets ============ */
+const F = (k, label, type, extra) => Object.assign({k, label, type: type || 'text'}, extra || {});
+const tripForm = () => [F('title','旅程名稱'), {row: [F('start','出發日','date'), F('days','天數','number')]}, F('theme','插圖','select', {opts: THEMES})];
+const itemForm = t => [F('name','地點名稱'), F('day','哪一天','select', {opts: Array.from({length: Math.max(1, t.days || 1)}, (_, i) => [i + 1, 'Day ' + (i + 1) + (t.start ? '（' + md(addDays(t.start, i)) + '）' : '')])}), {row: [F('start','開始','time'), F('end','結束','time')]}, {row: [F('cat','類型','select', {opts: CATS}), F('must','必去','checkbox')]},
+  {more: [F('hours','營業時間'), F('transit','交通','textarea', {hint:'例：捷運紅線到美麗島，轉橘線'}), F('address','地址（地圖用，留空就用名稱）'), F('note','備註','textarea')]}];
+const spotForm = () => [F('name','名稱'), F('type','分類', 'text', {hint:'例：咖啡廳、展覽、快閃店'}), {row: [F('start','開始日','date'), F('end','結束日','date')]}, F('address','地址'), F('note','備註','textarea')];
+function fieldHTML(f, v){
+  if(f.row) return `<div class="f2">${f.row.map(x => fieldHTML(x, v)).join('')}</div>`;
+  if(f.more){ const filled = f.more.some(x => v[x.k]); return `<details class="more"${filled ? ' open' : ''}><summary>更多細節</summary>${f.more.map(x => fieldHTML(x, v)).join('')}</details>`; }
+  const val = v[f.k] == null ? '' : v[f.k];
+  if(f.type === 'checkbox') return `<div class="f ck" style="align-self:end"><label><input type="checkbox" class="cb" name="${f.k}"${val ? ' checked' : ''}>${f.label}</label></div>`;
+  let inp;
+  if(f.type === 'select') inp = `<select name="${f.k}">${f.opts.map(o => { const [ov, ol] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(ov)}"${String(ov) === String(val) ? ' selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
+  else if(f.type === 'textarea') inp = `<textarea name="${f.k}">${esc(val)}</textarea>`;
+  else inp = `<input type="${f.type}" name="${f.k}" value="${esc(val)}"${f.type === 'number' ? ' min="1" max="60" inputmode="numeric"' : ''}>`;
+  return `<div class="f"><label>${f.label}</label>${inp}${f.hint ? `<div class="note">${f.hint}</div>` : ''}</div>`;
+}
+function sheetView(){
+  let body;
+  if(sheet.kind === 'menu') body = `<div class="menu">${sheet.items.map(([a, l, red]) => `<button data-act="${a}"${red ? ' class="red"' : ''}>${l}</button>`).join('')}</div>`;
+  else if(sheet.kind === 'settings') body = settingsBody();
+  else body = `<div id="mf">${sheet.fields.map(f => fieldHTML(f, sheet.values)).join('')}</div><div class="sbtns">${sheet.onDelete ? '<button class="del" data-act="sDel">刪除</button>' : ''}<button data-act="sClose">取消</button><button class="pri" data-act="sSave">儲存</button></div>`;
+  return `<div class="sheet-bg" data-act="sBg"><div class="sheet" role="dialog" aria-label="${esc(sheet.title)}"><h2>${esc(sheet.title)}</h2>${body}</div></div>`;
+}
+function settingsBody(){
+  return `<div class="f"><label>Notion Token</label><input id="sToken" type="password" autocomplete="off" value="${esc(cfg.token)}"></div>
+  <div class="f"><label>Proxy 網址</label><input id="sProxy" value="${esc(cfg.proxy)}"></div>
+  <h4>第一次使用</h4>
+  <div class="f"><label>放資料庫的 Notion 頁面網址（先把整合連到這頁）</label><input id="sPage" value="${esc(cfg.page)}" placeholder="https://www.notion.so/..."></div>
+  <button class="btn" data-act="create">一鍵建立 4 個資料庫</button>
+  <h4>資料庫 ID（建立後自動填好）</h4>
+  ${Object.keys(DB_TITLE).map(k => `<div class="f"><label>${DB_TITLE[k]}</label><input data-db="${k}" value="${esc(cfg.db[k])}"></div>`).join('')}
+  <div class="sbtns"><button data-act="sClose">關閉</button><button class="pri" data-act="saveCfg">儲存並連接</button></div>
+  <p class="note">Token 只存在這台裝置的瀏覽器裡。沒連 Notion 時，資料會存在這台裝置。</p>`;
+}
+function readForm(){ const o = {}; document.querySelectorAll('#mf [name]').forEach(el => { o[el.name] = el.type === 'checkbox' ? el.checked : el.value.trim(); }); return o; }
+function readSettings(){ cfg.token = $('#sToken').value.trim(); cfg.proxy = $('#sProxy').value.trim() || cfg.proxy; cfg.page = $('#sPage').value.trim(); document.querySelectorAll('[data-db]').forEach(el => { cfg.db[el.dataset.db] = el.value.trim().replace(/-/g, ''); }); saveCfg(); }
+const form = (title, fields, values, onSave, onDelete) => { sheet = {title, fields, values: Object.assign({}, values), onSave, onDelete}; render(); };
+const closeSheet = () => { sheet = null; $('#layer').innerHTML = ''; };
+
+/* ============ events ============ */
+document.addEventListener('click', async e => {
+  const q = s => e.target.closest('[' + s + ']');
+  let el;
+  if((el = q('data-open'))) return openTrip(el.dataset.open);
+  if((el = q('data-tab'))){ ui.tab = el.dataset.tab; saveUI(); render(); window.scrollTo(0, 0); return; }
+  if((el = q('data-day'))){ const d = +el.dataset.day; if(d !== ui.day){ ui.day = d; saveUI(); hop = true; render(); } return; }
+  if((el = q('data-filter'))){ ui.filter = el.dataset.filter; saveUI(); render(); return; }
+  if((el = q('data-toggle'))){ open[el.dataset.toggle] = !open[el.dataset.toggle]; render(); return; }
+  if((el = q('data-edit-item'))){ const x = data.items.find(i => i.id === el.dataset.editItem); form('編輯行程', itemForm(trip()), x, v => { Object.assign(x, v, {day: +v.day}); render(); run(() => be().update('items', x)); }, () => { data.items = data.items.filter(i => i !== x); render(); run(() => be().remove('items', x.id)); }); return; }
+  if((el = q('data-edit-spot'))){ const x = data.spots.find(i => i.id === el.dataset.editSpot); form('編輯打卡點', spotForm(), x, v => { Object.assign(x, v); render(); run(() => be().update('spots', x)); }, () => { data.spots = data.spots.filter(i => i !== x); render(); run(() => be().remove('spots', x.id)); }); return; }
+  if((el = q('data-del-list'))){ e.preventDefault(); const id = el.dataset.delList; data.list = data.list.filter(i => i.id !== id); render(); run(() => be().remove('list', id)); return; }
+  const a = e.target.closest('[data-act]'); if(!a) return;
+  const t = trip();
+  switch(a.dataset.act){
+    case 'home': ui.view = 'home'; saveUI(); render(); window.scrollTo(0, 0); loadTrips(); break;
+    case 'settings': sheet = {kind:'settings', title:'連接 Notion'}; render(); break;
+    case 'menu': sheet = {kind:'menu', title: t.title, items: [['editTrip','編輯旅程資訊'],['dupTrip','複製成新旅程'],['delTrip','刪除這個旅程', 1]]}; render(); break;
+    case 'sBg': if(e.target === a) closeSheet(); break;
+    case 'sClose': closeSheet(); break;
+    case 'sSave': { const v = readForm(), s = sheet; const need = s.fields[0].k; if(!v[need]){ toast('請填「' + s.fields[0].label + '」'); return; } sheet = null; s.onSave(v); break; }
+    case 'sDel': { if(!confirm('確定刪除？')) return; const s = sheet; sheet = null; s.onDelete(); break; }
+    case 'newTrip': form('新增旅程', tripForm(), {title:'', start: today(), days: 3, theme:'海港'}, async v => {
+        const rec = {title: v.title, start: v.start, days: Math.max(1, Math.min(60, +v.days || 1)), theme: v.theme};
+        closeSheet(); loading(true, '建立中…');
+        try{ await be().create('trips', rec); trips.push(rec); saveCache(); loading(false); openTrip(rec.id); }catch(err){ loading(false); toast('建立失敗：' + err.message); }
+      }); break;
+    case 'editTrip': form('編輯旅程資訊', tripForm(), t, v => { Object.assign(t, v, {days: Math.max(1, Math.min(60, +v.days || 1))}); render(); run(() => be().update('trips', t)); }); break;
+    case 'dupTrip': {
+      closeSheet(); loading(true, '複製中…');
+      try{
+        const nt = {title: t.title + '（副本）', start: t.start, days: t.days, theme: t.theme};
+        await be().create('trips', nt);
+        for(const c of ['items','spots','list']) for(const x of data[c]){ const r = Object.assign({}, x, {tripId: nt.id}); delete r.id; if(c !== 'items') r.done = false; await be().create(c, r); if(connected()) await sleep(300); }
+        trips.push(nt); saveCache(); loading(false); toast('已複製'); openTrip(nt.id);
+      }catch(err){ loading(false); toast('複製失敗：' + err.message); }
+      break; }
+    case 'delTrip': if(!confirm('刪除「' + t.title + '」和裡面所有內容？')) return; closeSheet(); loading(true, '刪除中…'); try{ await be().remove('trips', t.id); trips = trips.filter(x => x !== t); delete cache.data[t.id]; saveCache(); ui.view = 'home'; saveUI(); }catch(err){ toast('刪除失敗：' + err.message); } loading(false); render(); break;
+    case 'addItem': form('新增行程', itemForm(t), {day: ui.day, cat:'景點', must:false}, v => { const r = Object.assign({tripId: t.id}, v, {day: +v.day}); data.items.push(r); render(); run(() => be().create('items', r)); }); break;
+    case 'addSpot': form('新增打卡點', spotForm(), {type: ui.filter !== '全部' ? ui.filter : ''}, v => { const r = Object.assign({tripId: t.id, done: false}, v); data.spots.push(r); render(); run(() => be().create('spots', r)); }); break;
+    case 'addList': addList(); break;
+    case 'create': readSettings(); try{ await createDatabases(); toast('資料庫建好了'); sheet = {kind:'settings', title:'連接 Notion'}; render(); }catch(err){ loading(false); toast('建立失敗：' + err.message); } break;
+    case 'saveCfg': readSettings(); closeSheet(); if(!connected()){ toast('Token 和 4 個資料庫 ID 都要填'); return; } cache = ls(cacheKey(), {trips: [], data: {}}); trips = cache.trips || []; ui.view = 'home'; saveUI(); loadTrips(); break;
+  }
+});
+function addList(){
+  const ni = $('#ni'), text = ni.value.trim(); if(!text) return;
+  const r = {tripId: ui.tripId, text, group: $('#ng').value.trim() || '其他', done: false};
+  data.list.push(r); const g = $('#ng').value; render(); $('#ng').value = g; $('#ni').focus();
+  run(() => be().create('list', r));
+}
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.id === 'ni') addList(); if(e.key === 'Escape' && sheet) closeSheet(); });
+document.addEventListener('change', e => {
+  const d = e.target.dataset || {}, col = d.ckSpot ? 'spots' : d.ckList ? 'list' : null; if(!col) return;
+  const x = data[col].find(i => i.id === (d.ckSpot || d.ckList)); if(!x) return;
+  x.done = e.target.checked; render();
+  if(String(x.id).length) run(() => be().update(col, x));
+});
+
+/* ============ start ============ */
+render();
+if(ui.view === 'trip' && ui.tripId) openTrip(ui.tripId, true); else loadTrips();
+})();
+</script>
+</body>
+</html>
